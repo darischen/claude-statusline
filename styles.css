@@ -1,1 +1,99 @@
-/* styles added in Task 2 */
+#cs-widget {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2147483000;
+  width: 260px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font: 12px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #ffffff;
+  color: #1a1a1a;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  user-select: none;
+}
+
+.cs-collapse {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  line-height: 18px;
+  text-align: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 16px;
+  opacity: 0.5;
+}
+.cs-collapse:hover { opacity: 1; }
+
+.cs-row { margin: 8px 0 0; }
+.cs-row:first-of-type { margin-top: 2px; }
+
+.cs-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.cs-label { font-weight: 600; }
+.cs-pct { font-variant-numeric: tabular-nums; opacity: 0.9; }
+
+.cs-track {
+  margin: 4px 0 2px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+.cs-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: #16a34a;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+.cs-fill[data-color="ok"] { background: #16a34a; }
+.cs-fill[data-color="warn"] { background: #eab308; }
+.cs-fill[data-color="high"] { background: #f97316; }
+.cs-fill[data-color="crit"] { background: #dc2626; }
+
+.cs-sub {
+  font-size: 11px;
+  opacity: 0.6;
+  min-height: 13px;
+}
+
+/* Collapsed state: shrink to a compact pill showing only percentages */
+#cs-widget[data-cs-collapsed="true"] { width: auto; padding: 6px 10px; }
+#cs-widget[data-cs-collapsed="true"] .cs-track,
+#cs-widget[data-cs-collapsed="true"] .cs-sub,
+#cs-widget[data-cs-collapsed="true"] .cs-label { display: none; }
+#cs-widget[data-cs-collapsed="true"] .cs-row { display: inline-block; margin: 0 6px 0 0; }
+#cs-widget[data-cs-collapsed="true"] .cs-collapse { position: static; margin-left: 4px; }
+
+/* Dark mode via OS preference */
+@media (prefers-color-scheme: dark) {
+  #cs-widget {
+    background: #1f1f1f;
+    color: #ededed;
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  }
+  .cs-track { background: rgba(255, 255, 255, 0.12); }
+}
+
+/* Dark mode when claude.ai sets its own theme attribute */
+:root[data-mode="dark"] #cs-widget,
+html.dark #cs-widget {
+  background: #1f1f1f;
+  color: #ededed;
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+:root[data-mode="dark"] #cs-widget .cs-track,
+html.dark #cs-widget .cs-track { background: rgba(255, 255, 255, 0.12); }
