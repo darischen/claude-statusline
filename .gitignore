@@ -1,0 +1,12 @@
+# Design and spec docs (local only, not tracked)
+docs/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+
+# Node (if tooling is added later)
+node_modules/
