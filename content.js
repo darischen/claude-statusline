@@ -93,6 +93,22 @@ window.CS = window.CS || {};
     });
   }
 
+  let lastPath = location.pathname;
+  function watchUrl() {
+    setInterval(() => {
+      if (location.pathname !== lastPath) {
+        lastPath = location.pathname;
+        tickContext();
+      }
+    }, 1000);
+  }
+
+  function watchMount() {
+    setInterval(() => {
+      if (!document.getElementById(ID) && document.body) mount();
+    }, 2000);
+  }
+
   function mount() {
     if (document.getElementById(ID)) return;
     const el = document.createElement("div");
@@ -109,6 +125,8 @@ window.CS = window.CS || {};
     tickContext();
     usageTimer = setInterval(tickUsage, USAGE_MS);
     contextTimer = setInterval(tickContext, CONTEXT_MS);
+    watchUrl();
+    watchMount();
   }
 
   if (document.body) mount();
