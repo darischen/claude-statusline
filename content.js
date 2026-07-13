@@ -3,6 +3,7 @@ window.CS = window.CS || {};
 (function (CS) {
   const ID = "cs-widget";
   const COLLAPSE_KEY = "cs_collapsed";
+  const POS_KEY = "cs_pos";
   const USAGE_MS = 60000;
   const CONTEXT_MS = 4000;
 
@@ -94,6 +95,107 @@ window.CS = window.CS || {};
     });
   }
 
+  function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+  }
+
+  function applyPos(left, top) {
+    const root = document.getElementById(ID);
+    if (!root) return;
+    const w = root.offsetWidth;
+    const h = root.offsetHeight;
+    const maxLeft = window.innerWidth - w;
+    const maxTop = window.innerHeight - h;
+    left = clamp(left, 0, Math.max(0, maxLeft));
+    top = clamp(top, 0, Math.max(0, maxTop));
+    // Switch from the CSS right/bottom anchor to an explicit left/top anchor.
+    root.style.left = left + "px";
+    root.style.top = top + "px";
+    root.style.right = "auto";
+    root.style.bottom = "auto";
+  }
+
+  async function applyStoredPos() {
+    const root = document.getElementById(ID);
+    if (!root) return;
+    let pos = null;
+    try {
+      const s = await chrome.storage.local.get(POS_KEY);
+      pos = s && s[POS_KEY];
+    } catch (e) {}
+    if (pos && typeof pos.left === "number" && typeof pos.top === "number") {
+      applyPos(pos.left, pos.top);
+    }
+  }
+
+  function resetPos() {
+    const root = document.getElementById(ID);
+    if (!root) return;
+    // Drop the explicit anchor so the CSS right/bottom default takes over again.
+    root.style.left = "";
+    root.style.top = "";
+    root.style.right = "";
+    root.style.bottom = "";
+    try { chrome.storage.local.remove(POS_KEY); } catch (e) {}
+  }
+
+  function wireReset() {
+    const root = document.getElementById(ID);
+    if (!root) return;
+    const btn = root.querySelector(".cs-reset");
+    if (!btn) return;
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      resetPos();
+    });
+  }
+
+  function wireDrag() {
+    const root = document.getElementById(ID);
+    if (!root) return;
+    let startX = 0, startY = 0, baseLeft = 0, baseTop = 0, dragging = false, moved = false;
+
+    function onDown(e) {
+      // Ignore drags that start on a control button so its click still works.
+      if (e.target.closest(".cs-collapse, .cs-reset")) return;
+      if (e.button !== 0) return;
+      const rect = root.getBoundingClientRect();
+      baseLeft = rect.left;
+      baseTop = rect.top;
+      startX = e.clientX;
+      startY = e.clientY;
+      dragging = true;
+      moved = false;
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+      e.preventDefault();
+    }
+
+    function onMove(e) {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (!moved && Math.abs(dx) + Math.abs(dy) < 3) return;
+      moved = true;
+      root.setAttribute("data-cs-dragging", "true");
+      applyPos(baseLeft + dx, baseTop + dy);
+    }
+
+    async function onUp() {
+      dragging = false;
+      root.removeAttribute("data-cs-dragging");
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      if (!moved) return;
+      const rect = root.getBoundingClientRect();
+      try {
+        await chrome.storage.local.set({ [POS_KEY]: { left: rect.left, top: rect.top } });
+      } catch (e) {}
+    }
+
+    root.addEventListener("pointerdown", onDown);
+  }
+
   let lastPath = location.pathname;
   function watchUrl() {
     setInterval(() => {
@@ -116,12 +218,16 @@ window.CS = window.CS || {};
     el.id = ID;
     el.innerHTML =
       '<button class="cs-collapse" type="button" title="Collapse">–</button>' +
+      '<button class="cs-reset" type="button" title="Reset position">↺</button>' +
       rowHtml("context", "Context") +
       rowHtml("session", "Session") +
       rowHtml("weekly", "Weekly");
     document.body.appendChild(el);
     wireCollapse();
+    wireReset();
+    wireDrag();
     applyCollapsed();
+    applyStoredPos();
     tickUsage();
     tickContext();
     usageTimer = setInterval(tickUsage, USAGE_MS);

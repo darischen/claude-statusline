@@ -12,6 +12,12 @@
   border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   user-select: none;
+  cursor: grab;
+  touch-action: none;
+}
+#cs-widget[data-cs-dragging="true"] {
+  cursor: grabbing;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
 }
 
 .cs-collapse {
@@ -28,9 +34,33 @@
   color: inherit;
   cursor: pointer;
   font-size: 16px;
-  opacity: 1;
+  opacity: 0;
+  transition: opacity 0.15s ease;
 }
-.cs-collapse:hover { opacity: 1; }
+
+.cs-reset {
+  position: absolute;
+  top: -2px;
+  right: 213px;
+  width: 20px;
+  height: 20px;
+  line-height: 18px;
+  text-align: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+/* Reveal both control buttons only while hovering the widget */
+#cs-widget:hover .cs-collapse,
+#cs-widget:hover .cs-reset { opacity: 0.75; }
+#cs-widget .cs-collapse:hover,
+#cs-widget .cs-reset:hover { opacity: 1; }
 
 .cs-row { margin: 8px 0 0; }
 .cs-row:first-of-type { margin-top: 2px; }
@@ -74,7 +104,8 @@
 #cs-widget[data-cs-collapsed="true"] .cs-sub,
 #cs-widget[data-cs-collapsed="true"] .cs-label { display: none; }
 #cs-widget[data-cs-collapsed="true"] .cs-row { display: inline-block; margin: 0 6px 0 0; }
-#cs-widget[data-cs-collapsed="true"] .cs-collapse { position: static; margin-left: 4px; }
+#cs-widget[data-cs-collapsed="true"] .cs-collapse,
+#cs-widget[data-cs-collapsed="true"] .cs-reset { position: static; margin-left: 4px; }
 
 /* Dark mode via OS preference */
 @media (prefers-color-scheme: dark) {
