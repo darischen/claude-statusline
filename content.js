@@ -66,7 +66,8 @@ window.CS = window.CS || {};
     let c = null;
     try { c = await CS.fetchContext(); } catch (e) {}
     if (!c) { setRow("context", null, ""); return; }
-    const sub = CS.formatTokens(c.used) + "/" + CS.formatTokens(c.window) + " est.";
+    const label = c.modelLabel ? " · " + c.modelLabel : "";
+    const sub = CS.formatTokens(c.used) + "/" + CS.formatTokens(c.window) + " est." + label;
     setRow("context", c.pct, sub, "~");
   }
 

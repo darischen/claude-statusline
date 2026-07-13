@@ -16,9 +16,32 @@ window.CS = window.CS || {};
     return m ? m[1] : null;
   };
 
+  // claude.ai chat-app context window for a given model id, paid plans.
+  CS.windowForModel = function (model) {
+    const m = (model || "").toLowerCase();
+    if (/sonnet-?5/.test(m)) return 1000000;
+    if (/opus-4-[678]/.test(m)) return 500000;
+    if (/sonnet-4-6/.test(m)) return 500000;
+    return CS.DEFAULT_WINDOW;
+  };
+
+  CS.modelLabel = function (model) {
+    const m = (model || "").toLowerCase();
+    if (/opus-4-8/.test(m)) return "Opus 4.8";
+    if (/opus-4-7/.test(m)) return "Opus 4.7";
+    if (/opus-4-6/.test(m)) return "Opus 4.6";
+    if (/opus-4-5/.test(m)) return "Opus 4.5";
+    if (/sonnet-4-6/.test(m)) return "Sonnet 4.6";
+    if (/sonnet-4-5/.test(m)) return "Sonnet 4.5";
+    if (/sonnet-?5/.test(m)) return "Sonnet 5";
+    if (/haiku-4-5/.test(m)) return "Haiku 4.5";
+    if (/fable-?5/.test(m)) return "Fable 5";
+    return model || "";
+  };
+
   CS.fetchContext = async function () {
     const id = CS.getConversationId();
-    if (!id) return { used: 0, window: CS.DEFAULT_WINDOW, pct: 0 };
+    if (!id) return { used: 0, window: CS.DEFAULT_WINDOW, pct: 0, model: "", modelLabel: "" };
 
     const org = await CS.getOrgId();
     if (!org) return null;
@@ -44,10 +67,21 @@ window.CS = window.CS || {};
       used += CS.estimateTokens(textOf(msg));
     }
 
-    const win = CS.DEFAULT_WINDOW;
+    const model = modelOf(conv, messages);
+    const win = CS.windowForModel(model);
     const pct = Math.max(0, Math.min(100, Math.round((used / win) * 100)));
-    return { used: used, window: win, pct: pct };
+    return { used: used, window: win, pct: pct, model: model, modelLabel: CS.modelLabel(model) };
   };
+
+  function modelOf(conv, messages) {
+    const msgs = messages || (conv && (conv.chat_messages || conv.messages)) || [];
+    for (let i = msgs.length - 1; i >= 0; i--) {
+      if (msgs[i] && typeof msgs[i].model === "string" && msgs[i].model) return msgs[i].model;
+    }
+    if (conv && typeof conv.model === "string" && conv.model) return conv.model;
+    if (conv && conv.settings && typeof conv.settings.model === "string") return conv.settings.model;
+    return "";
+  }
 
   function textOf(msg) {
     if (!msg) return "";
