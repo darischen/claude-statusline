@@ -230,8 +230,6 @@ window.CS = window.CS || {};
     applyStoredPos();
     tickUsage();
     tickContext();
-    tickUsage();
-    tickContext();
     clearInterval(usageTimer);
     clearInterval(contextTimer);
     usageTimer = setInterval(tickUsage, USAGE_MS);
