@@ -230,12 +230,16 @@ window.CS = window.CS || {};
     applyStoredPos();
     tickUsage();
     tickContext();
+    tickUsage();
+    tickContext();
+    clearInterval(usageTimer);
+    clearInterval(contextTimer);
     usageTimer = setInterval(tickUsage, USAGE_MS);
     contextTimer = setInterval(tickContext, CONTEXT_MS);
-    watchUrl();
-    watchMount();
   }
 
   if (document.body) mount();
   else document.addEventListener("DOMContentLoaded", mount, { once: true });
+  watchUrl();
+  watchMount();
 })(window.CS);
